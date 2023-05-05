@@ -1,9 +1,71 @@
 ﻿@page "/"
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.SignalR.Client;
+@using System.Text.Json;
 
 <PageTitle>Index</PageTitle>
 
 <h1>Hello, world!</h1>
+<div id="chart"></div>
 
-Welcome to your new app.
+@code {
+    private HubConnection hubConnection;
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+        await JS.InvokeVoidAsync("createChart", "chart");
+
+        // Data transfer (.NET -> JS), example #1: Invoke JS with stringified JSON.
+        // Simple, but not very efficient.
+        Random random = new Random();
+        double prevY = 0;
+        List<Point> data1 = new List<Point>();
+        for (int i = 0; i < 1_000; i += 1)
+        {
+            double y = prevY + (random.NextDouble() * 2 - 1);
+            data1.Add(new Point(i, y));
+            prevY = y;
+        }
+        string json = JsonSerializer.Serialize(data1);
+        await JS.InvokeVoidAsync("setChartData", "chart", json);
+
+        // Data transfer (.NET -> JS), example #2: Send binary payload using SignalR.
+        // Suitable for streaming several small chunks of data with low latency.
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/chartDataTransferHub"))
+            .ConfigureLogging(logging => logging.AddConsole())
+            .Build();
+        await hubConnection.StartAsync();
+
+        prevY = 0;
+        for (int i = 0; i < 500; i += 1)
+        {
+            double[] data2 = new double[2];
+            for (int i2 = 0; i2 < data2.Length; i2 += 1)
+            {
+                double y = prevY + (random.NextDouble() * 2 - 1);
+                data2[i2] = y;
+                prevY = y;
+            }
+            await hubConnection.InvokeAsync("SendData", "chart", data2);
+            await Task.Delay(10);
+        }
+    }
+
+    private class Point
+    {
+        public double x { get; set; }
+        public double y { get; set; }
+
+        public Point(double X, double Y)
+        {
+            x = X;
+            y = Y;
+        }
+    }
+}
