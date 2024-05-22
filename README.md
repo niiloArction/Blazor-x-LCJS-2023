@@ -14,7 +14,7 @@ These code changes can be found isolated from the [Git commit history](https://g
 
 ## Add LightningChart JS as a JavaScript library dependency.
 
-- Download `lcjs.iife.js` from a CDN service such as [jsdelivr](https://www.jsdelivr.com/package/npm/@arction/lcjs) and place the file in `wwwroot/js/`
+- Download `lcjs.iife.js` from a CDN service such as [jsdelivr](https://www.jsdelivr.com/package/npm/@lightningchart/lcjs) and place the file in `wwwroot/js/`
 - Register it as a global dependency in `Pages/_Host.cshtml`
 
 ## Add JavaScript to the project to work with LightningChart JS
@@ -47,8 +47,8 @@ This is a completely custom script that works together with the C# client applic
 
 ```css
 #chart {
-    width: 100%;
-    height: 400px;
+  width: 100%;
+  height: 400px;
 }
 ```
 
@@ -73,7 +73,7 @@ Much better method for real-time data visualization, setup a SignalR client in t
 
 - Add [SignalR and SignalR JavaScript client](https://learn.microsoft.com/en-us/aspnet/core/tutorials/signalr?view=aspnetcore-7.0&tabs=visual-studio) as project dependencies
 - Also register the JS client library in `Pages/_Host.cshtml`
-- Add SignalR Hub `Hubs/ChartDataTransferHub.cs` 
+- Add SignalR Hub `Hubs/ChartDataTransferHub.cs`
 - Add the SignalR service and register the Hub in `Program.cs`
 - Afterwards, you can communicate between C# client, backend as well as the JS chart script in real-time.
 
@@ -87,10 +87,9 @@ It should also be possible to send data directly from backend to the JS script.
 - Fetch the data by initiating a request in the JS script.
 
 ```js
-fetch('/api/data')
-    .then(r => r.json())
-    .then(data => {
-        lineSeriesAPI.addArrayY(data)
-    })
+fetch("/api/data")
+  .then((r) => r.json())
+  .then((data) => {
+    lineSeriesAPI.addArrayY(data);
+  });
 ```
-
